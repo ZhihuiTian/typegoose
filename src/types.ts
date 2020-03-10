@@ -19,7 +19,7 @@ export type DocumentType<T> = (T extends Base ? Omit<mongoose.Document, '_id'> &
  * Used Internally for ModelTypes
  * @internal
  */
-export type ModelType<T> = mongoose.Model<DocumentType<T>> & T;
+export type ModelType<T, QueryHelpers> = mongoose.Model<DocumentType<T>, QueryHelpers> & T;
 /**
  * Any-param Constructor
  * @internal
@@ -28,7 +28,7 @@ export type AnyParamConstructor<T> = new (...args: any) => T;
 /**
  * The Type of a Model that gets returned by "getModelForClass" and "setModelForClass"
  */
-export type ReturnModelType<U extends AnyParamConstructor<T>, T = any> = ModelType<InstanceType<U>> & U;
+export type ReturnModelType<U extends AnyParamConstructor<T>, T = any, QueryHelpers = {}> = ModelType<InstanceType<U>, QueryHelpers> & U;
 
 /** @internal */
 export type Func = (...args: any[]) => any;
@@ -40,11 +40,7 @@ export interface ValidatorOptions {
   validator: ValidatorFunction;
   message?: string;
 }
-export type Validator =
-  | ValidatorFunction
-  | RegExp
-  | ValidatorOptions
-  | ValidatorOptions[];
+export type Validator = ValidatorFunction | RegExp | ValidatorOptions | ValidatorOptions[];
 
 export interface BasePropOptions {
   [key: string]: any;
@@ -161,7 +157,7 @@ export interface BasePropOptions {
    * This option as only an effect when the plugin `mongoose-autopopulate` is used
    */
   // tslint:disable-next-line:ban-types
-  autopopulate?: boolean | Function | { [key: string]: any; };
+  autopopulate?: boolean | Function | { [key: string]: any };
   /** Reference an other Document (you should use Ref<T> as Prop type) */
   ref?: any;
   /** Take the Path and try to resolve it to a Model */
@@ -175,7 +171,7 @@ export interface BasePropOptions {
 }
 
 // tslint:disable-next-line:no-empty-interface
-export interface PropOptions extends BasePropOptions { }
+export interface PropOptions extends BasePropOptions {}
 
 export interface ArrayPropOptions extends BasePropOptions {
   /** What array is it?
@@ -268,17 +264,18 @@ export type PropOptionsWithStringValidate = PropOptions & TransformStringOptions
 export type PropOptionsWithValidate = PropOptionsWithNumberValidate | PropOptionsWithStringValidate | VirtualOptions;
 
 export type RefType = number | string | mongoose.Types.ObjectId | Buffer;
-export type RefSchemaType = typeof mongoose.Schema.Types.Number |
-  typeof mongoose.Schema.Types.String |
-  typeof mongoose.Schema.Types.Buffer |
-  typeof mongoose.Schema.Types.ObjectId;
+export type RefSchemaType =
+  | typeof mongoose.Schema.Types.Number
+  | typeof mongoose.Schema.Types.String
+  | typeof mongoose.Schema.Types.Buffer
+  | typeof mongoose.Schema.Types.ObjectId;
 
 /**
  * Reference another Model
  * @public
  */
 // export type Ref<R, T extends RefType = mongoose.Types.ObjectId> = R | T; // old type, kept for easy revert
-export type Ref<R, T extends RefType = R extends { _id: RefType; } ? R['_id'] : mongoose.Types.ObjectId> = R | T;
+export type Ref<R, T extends RefType = R extends { _id: RefType } ? R['_id'] : mongoose.Types.ObjectId> = R | T;
 
 /**
  * An Function type for a function that dosnt have any arguments and dosnt return anything
